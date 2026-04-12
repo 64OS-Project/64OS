@@ -1,0 +1,43 @@
+[BITS 64]
+
+global ide_pri_irq
+extern ide_primary_irq_handler
+ide_pri_irq:
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rbp
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+
+    call ide_primary_irq_handler
+
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
+    pop rdx
+    pop rcx
+    pop rax
+
+    iretq
+
+section .note.GNU-stack
+    
