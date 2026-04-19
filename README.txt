@@ -7,7 +7,7 @@ It provides hardware management, driver support, and system services.
 Quick Start
 -----------
 
-* Get the source: git clone https://github.com/yourname/64OS.git
+* Get the source: git clone https://github.com/64OS-Project/64OS.git
 * Build the kernel: make
 * Create bootable ISO via grub-mkrescue
 * Run in QEMU, VirtualBox or real hardware
