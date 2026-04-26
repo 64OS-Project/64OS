@@ -110,5 +110,6 @@ char kbd_getchar(void); /*
  */
 
 void kbd_buffer_push(char c);
+void kbd_push_raw_scancode(u8 scancode);
 
 #endif

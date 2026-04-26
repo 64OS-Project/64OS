@@ -64,20 +64,9 @@ void biosdev_print_info(boot_device_info_t *info) {
         return;
     }
     
-    terminal_printf("\n=== Boot Device Info ===\n");
     terminal_printf("BIOS number: 0x%02x\n", info->bios_number);
     terminal_printf("Type: %s\n", biosdev_type_to_string(info->type));
     terminal_printf("Device number: %d\n", info->device_number);
     terminal_printf("Removable: %s\n", info->is_removable ? "Yes" : "No");
     terminal_printf("Name: %s\n", info->name);
-    
-    //Additional information
-    if (info->type == BOOT_DEVICE_CDROM) {
-        terminal_printf("Note: Booted from CD-ROM (Live CD)\n");
-        terminal_printf("      You can install system to hard disk\n");
-    } else if (info->type == BOOT_DEVICE_HDD) {
-        terminal_printf("Note: Booted from hard disk\n");
-        terminal_printf("      System is installed\n");
-    }
-    terminal_printf("========================\n");
 }

@@ -259,6 +259,35 @@ void kbd_buffer_push(char c)
     irq_restore_flags(flags);
 }
 
+void kbd_push_raw_scancode(u8 scancode) {
+    // Транслируем break code если нужно
+    bool released = scancode & 0x80;
+    u8 key = scancode & 0x7F;
+    
+    // Используем существующую логику из keyboard_handler
+    if (released) {
+        if (key == KEY_LSHIFT || key == KEY_RSHIFT) {
+            shift_down = false;
+        }
+    } else {
+        char ch = get_ascii_char(key);
+        if (ch) {
+            if (g_terminal.prompt_enabled) {
+                terminal_handle_input(ch);
+            } else {
+                kbd_buffer_push(ch);
+            }
+        }
+        
+        // Обновляем состояние модификаторов
+        if (key == KEY_LSHIFT || key == KEY_RSHIFT) {
+            shift_down = true;
+        } else if (key == KEY_CAPSLOCK) {
+            caps_lock = !caps_lock;
+        }
+    }
+}
+
 /*
  * Takes a character from the buffer without blocking Returns -1 if empty.
  */

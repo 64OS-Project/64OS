@@ -36,10 +36,16 @@
 #include <kernel/fileio.h>
 #include <fs/procfs.h>
 #include <kernel/smp.h>
-#include <kernel/syscall.h>
 #include <crypto/api.h>
 #include <net/net.h>
 #include <net/dhcp.h>
+#include <aml.h>
+#include <usb/usb.h>
+#include <usb/ehci.h>
+#include <usb/xhci.h>
+#include <usb/hid.h>
+#include <kernel/findfw.h>
+#include <kernel/errlist.h>
 
 multiboot2_info_t mbinfo;
 pmm_t pmm;
@@ -49,6 +55,24 @@ ide_disk_t disks[4];
 vfs_inode_t *fs_root = NULL;
 u8 bios_number = 0;
 static dhcp_client_t g_dhcp_client;
+extern void hid_keyboard_init(void);
+
+static void aml_parse_task(void) {
+    aml_context_t *aml_ctx = aml_get_context();
+    
+    if (aml_init_context(aml_ctx, acpi)) {
+        terminal_success_printf("AML parser initialized\n");
+        power_button_info_t pwr;
+        if (aml_get_power_button_info(&pwr)) {
+            terminal_printf("[PWR] Power button found\n");
+        }
+    } else {
+        terminal_error_printf("AML parser init failed\n");
+    }
+    
+    // ОДИН task_exit в конце
+    task_exit(0);
+}	
 
 extern driver_t g_fb_driver;
 extern driver_t g_acpi_driver;
@@ -171,6 +195,7 @@ void kmain(u64 mb2_addr) {
 
     fb_clear(FB_BLACK);
     terminal_init();
+    errlist_init();
 
     terminal_printf("Loading kernel...\n");
     if (mbinfo.boot_loader_name) {
@@ -195,6 +220,8 @@ void kmain(u64 mb2_addr) {
     } else {
         terminal_printf("No cmdline found\n");
     }
+    find_firmware_init();
+    find_firmware_print_info();
     if (acpi_drv && acpi_drv->probe && acpi_drv->probe(acpi_drv) == 0) {
         if (mbinfo.acpi.rsdpv2_addr) {
             current_acpi_tbl = mbinfo.acpi.rsdpv2_addr;
@@ -268,11 +295,20 @@ void kmain(u64 mb2_addr) {
 
     scheduler_init();
 
-    syscall_init();
+    // task_create(aml_parse_task, KSTACK_SIZE, "AMLParse");
 
     if (pci_drv && pci_drv->probe && pci_drv->probe(pci_drv) == 0) {
         pci_init();
         pci_drv->initialized = true;
+
+        usb_init();
+
+	xhci_probe_all();
+        ehci_probe_all();
+
+        hid_init();
+	hid_keyboard_init();
+        
         terminal_success_printf("PCI OK");
     } else {
         panic("NO PCI");

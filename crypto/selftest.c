@@ -126,12 +126,12 @@ int crypto_self_test(void) {
     int failed = 0;
     
     for (int i = 0; tests[i].name; i++) {
-        terminal_printf("  %s... ", tests[i].name);
+        terminal_printf_nn("  %s... ", tests[i].name);
         if (tests[i].test() == CRYPTO_OK) {
-            terminal_success_printf("PASS\n");
+            terminal_success_printf(" PASS\n");
             passed++;
         } else {
-            terminal_error_printf("FAIL\n");
+            terminal_error_printf(" FAIL\n");
             failed++;
         }
     }

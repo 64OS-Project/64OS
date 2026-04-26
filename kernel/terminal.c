@@ -5,6 +5,7 @@
 #include <mm/heap.h>
 #include <asm/cpu.h>
 #include <fs/vfs.h>
+#include <kernel/errlist.h>
 
 /*
  * Global terminal
@@ -440,6 +441,12 @@ void terminal_putchar(char c) {
     i32 x = 2 + g_terminal.cursor_x * FONT_WIDTH;
     
     if (c == '\n') {
+        if (line_pos > 0) {
+            term_add_line(line_buffer, g_terminal.color_fg);
+            line_pos = 0;
+            line_buffer[0] = '\0';
+        }
+
         //New line
         g_terminal.cursor_x = 0;
         g_terminal.cursor_y++;
@@ -501,6 +508,8 @@ void terminal_update_prompt_line(void) {
     char full_text[PATH_MAX + 256];
     snprintf(full_text, sizeof(full_text), "%s%s", prompt_text, g_terminal.input_buffer);
     fb_draw_string(full_text, 2, y, g_terminal.prompt_color, g_terminal.color_bg);
+
+    fb_swap_buffers();
 }
 
 char* terminal_getline(void) {
@@ -530,6 +539,8 @@ i32 terminal_get_scroll_position(void) {
 
 void terminal_refresh(void) {
     if (!fb_is_initialized()) return;
+
+    fb_clear_back();
     
     term_calc_visible_lines();
     
@@ -579,6 +590,17 @@ void terminal_refresh(void) {
     if (g_terminal.prompt_enabled && g_terminal.mode == TERM_MODE_PROMPT) {
         term_draw_prompt();
     }
+
+    if (line_pos > 0 && g_terminal.prompt_enabled && g_terminal.mode == TERM_MODE_PROMPT) {
+    	i32 y = (g_terminal.visible_lines) * (FONT_HEIGHT + 2);
+    	char prompt_text[PATH_MAX + 32];
+    	terminal_generate_prompt(prompt_text, sizeof(prompt_text));
+    	char full_text[PATH_MAX + 256];
+    	snprintf(full_text, sizeof(full_text), "%s%s", prompt_text, g_terminal.input_buffer);
+    	fb_draw_string(full_text, 2, y, g_terminal.prompt_color, g_terminal.color_bg);
+    }
+
+    fb_swap_buffers();
 }
 
 void terminal_show_scrollbar(bool show) {
@@ -621,6 +643,8 @@ void terminal_warn_printf(const char* format, ...) {
     va_start(args, format);
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
+
+    errlist_add("TERMINAL", buffer, 0, false);
     
     /*
  * Add the prefix [WARN] and display it in orange
@@ -645,6 +669,7 @@ void terminal_error_printf(const char* format, ...) {
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     
+    errlist_add("TERMINAL", buffer, 0, true);
     /*
  * Add the prefix [ERROR] and display it in red
  */
@@ -797,11 +822,19 @@ char* terminal_input(const char *prompt) {
     return buffer;
 }
 
-//Output without line feed and without adding to history
+// Output without line feed and without adding to history
 void terminal_print_nn(const char* str) {
     if (!str) return;
     
-    //Just display it on the screen
+    // Накопление в line_buffer
+    sz len = strlen(str);
+    if (line_pos + len < sizeof(line_buffer) - 1) {
+        memcpy(line_buffer + line_pos, str, len);
+        line_pos += len;
+        line_buffer[line_pos] = '\0';
+    }
+    
+    // Рисуем на экране
     int y = g_terminal.cursor_y * (FONT_HEIGHT + 2);
     int x = 2 + g_terminal.cursor_x * FONT_WIDTH;
     fb_draw_string(str, x, y, g_terminal.color_fg, g_terminal.color_bg);

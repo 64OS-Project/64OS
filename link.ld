@@ -53,7 +53,7 @@ SECTIONS
     .heap (NOLOAD) : {
         . = ALIGN(8);
         _heap_start = .;
-        . = . + 512 * 1024 * 1024;  /* 512 MB кучи */
+        . = . + 8 * 1024 * 1024;  /* 8 MB кучи */
         _heap_end = .;
     } :data
     

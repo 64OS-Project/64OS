@@ -135,21 +135,6 @@ static u64 *prepare_initial_stack(void (*entry)(void),
     return sp;
 }
 
-char *strdup(const char *s)
-{
-    if (!s)
-        return NULL;
-
-    sz len = strlen(s) + 1; //+1 for '\0'
-    char *dup = (char *)malloc(len);
-
-    if (!dup)
-        return NULL;
-
-    memcpy(dup, s, len);
-    return dup;
-}
-
 /*
  * ----------------Scheduler init / create / pick_next --------------------
  */

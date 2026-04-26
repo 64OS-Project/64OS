@@ -2,6 +2,7 @@
 #include <libk/string.h>
 #include <stdarg.h>
 #include <libk/vsnprintf.h>
+#include <mm/heap.h>
 
 /*
  * =================== MEM ===================
@@ -217,6 +218,23 @@ void *memmove(void *dst0, const void *src0, sz n)
     }
 
     return dst0;
+}
+
+void *memmem(const void *haystack, sz haystack_len, const void *needle, sz needle_len) {
+    const unsigned char *h = (const unsigned char *)haystack;
+    const unsigned char *n = (const unsigned char *)needle;
+    
+    if (needle_len == 0) return (void *)haystack;
+    if (haystack_len < needle_len) return NULL;
+    
+    for (sz i = 0; i <= haystack_len - needle_len; i++) {
+        sz j;
+        for (j = 0; j < needle_len; j++) {
+            if (h[i + j] != n[j]) break;
+        }
+        if (j == needle_len) return (void *)(h + i);
+    }
+    return NULL;
 }
 
 /*
@@ -523,4 +541,15 @@ long atol(const char* str) {
     }
     
     return result * sign;
+}
+
+char *strdup(const char *s) {
+    if (!s) return NULL;
+    
+    sz len = strlen(s) + 1;
+    char *dup = (char *)malloc(len);
+    if (!dup) return NULL;
+    
+    memcpy(dup, s, len);
+    return dup;
 }

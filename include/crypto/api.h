@@ -125,13 +125,6 @@ int crypto_get_random_bytes(u8 *buf, u32 len);
 
 int crypto_self_test(void);
 
-/*
- * =============================================================================== Utilities =====================================================================================
- */
-
-int crypto_memcmp(const void *a, const void *b, u32 len);
-void crypto_memzero(void *ptr, u32 len);
-
 #endif /*
  * CRYPTO_API_H
  */

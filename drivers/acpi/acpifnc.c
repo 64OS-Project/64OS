@@ -253,6 +253,35 @@ bool acpi_init(u64 rsdp_addr) {
     g_acpi.madt = (madt_t*)acpi_find_table("APIC");
     g_acpi.hpet = (hpet_t*)acpi_find_table("HPET");
     g_acpi.mcfg = (mcfg_t*)acpi_find_table("MCFG");
+
+    if (g_acpi.fadt) {
+    	if (g_acpi.use_xsdt && g_acpi.fadt->x_dsdt) {
+            g_acpi.dsdt = (sdt_header_t*)(uptr)g_acpi.fadt->x_dsdt;
+    	} else if (g_acpi.fadt->dsdt) {
+            g_acpi.dsdt = (sdt_header_t*)(uptr)g_acpi.fadt->dsdt;
+    	}
+    }
+
+    g_acpi.ssdt_count = 0;
+    if (g_acpi.use_xsdt && g_acpi.xsdt) {
+    	u32 entries = (g_acpi.xsdt->header.length - sizeof(sdt_header_t)) / 8;
+    	u64 *entries_ptr = (u64*)((uptr)g_acpi.xsdt + sizeof(sdt_header_t));
+    	for (u32 i = 0; i < entries && g_acpi.ssdt_count < 16; i++) {
+            sdt_header_t *table = (sdt_header_t*)(uptr)entries_ptr[i];
+            if (memcmp(table->signature, "SSDT", 4) == 0) {
+            	g_acpi.ssdts[g_acpi.ssdt_count++] = table;
+            }
+    	}
+    } else if (g_acpi.rsdt) {
+    	u32 entries = (g_acpi.rsdt->header.length - sizeof(sdt_header_t)) / 4;
+    	u32 *entries_ptr = (u32*)((uptr)g_acpi.rsdt + sizeof(sdt_header_t));
+    	for (u32 i = 0; i < entries && g_acpi.ssdt_count < 16; i++) {
+            sdt_header_t *table = (sdt_header_t*)(uptr)entries_ptr[i];
+            if (memcmp(table->signature, "SSDT", 4) == 0) {
+            	g_acpi.ssdts[g_acpi.ssdt_count++] = table;
+            }
+    	}
+    }
     
     if (g_acpi.madt) {
         acpi_parse_madt();

@@ -24,6 +24,14 @@ void* pmm_alloc_page(pmm_t* pmm);
 
 void pmm_free_page(pmm_t* pmm, void* addr);
 
+void* pmm_alloc_range(pmm_t *pmm, u32 page_count);
+
+void pmm_free_range(pmm_t *pmm, void *addr, u32 page_count);
+
+void* pmm_alloc_aligned_range(pmm_t *pmm, u32 page_count, u32 alignment_pages);
+
+u32 pmm_get_free_continuous_max(pmm_t *pmm);
+
 static inline u32 pmm_get_free_pages(pmm_t* pmm) {
     return pmm ? (pmm->total_pages - pmm->used_pages) : 0;
 }

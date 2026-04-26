@@ -8,6 +8,7 @@ void *memcpy(void *dst, const void *src, sz n);
 void *memset(void *s, int c, sz n);
 int memcmp(const void *ptr1, const void *ptr2, sz num);
 void *memmove(void *dst0, const void *src0, sz n);
+void *memmem(const void *haystack, sz haystack_len, const void *needle, sz needle_len);
 
 sz strlen(const char *s);
 char *strcpy(char *dst, const char *src);
@@ -25,6 +26,7 @@ int snprintf(char* str, sz size, const char* format, ...);
 int vsprintf(char* str, const char* format, va_list args);
 int vsnprintf(char* str, sz size, const char* format, va_list args);
 char *strstr(const char *haystack, const char *needle);
+char *strdup(const char *s);
 
 int atoi(const char* str);
 long atol(const char* str);

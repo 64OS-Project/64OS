@@ -190,7 +190,11 @@ void terminal_handle_input(char c) {
                 cmd_kill(args);
             } else if (strcmp(cmd, "time") == 0) {
                 cmd_time();
-            }
+	    } else if (strcmp(cmd, "termcolor") == 0) {
+    		cmd_termcolor(args);
+	    } else if (strcmp(cmd, "errlist") == 0) {
+    		cmd_errlist(args);
+	    }
             else {
                 if (strlen(g_terminal.input_buffer) > 0) {
                     terminal_printf("Unknown command: %s\n", cmd);

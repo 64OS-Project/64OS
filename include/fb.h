@@ -55,6 +55,7 @@ typedef struct {
     u8 *text_buffer;         //terminal buffer
     u32 text_buffer_size;
     bool text_buffer_dirty;
+    void *back_buffer;
     
     //Graphics buffer (for GUI)
     u8 *graphics_buffer;     //graphics buffer
@@ -153,17 +154,8 @@ u32 fb_char_width_large(char c, u8 scale);
 
 void draw_os_logo(i32 x, i32 y, const unsigned char *bitmap);
 
-void fb_set_mode(fb_mode_t mode);
-fb_mode_t fb_get_mode(void);
-void fb_switch_mode(void);  //switch between modes
-
-//Buffers
 void fb_swap_buffers(void);
-void fb_clear_text_buffer(void);
-void fb_clear_graphics_buffer(fb_color_t color);
-
-//Registering handlers
-void fb_register_switch_handlers(void (*to_text)(void), void (*to_graphics)(void));
+void fb_clear_back(void);
 
 #define FB_RGB(r, g, b) ((fb_color_t){(r), (g), (b), 255})
 #define FB_RGBA(r, g, b, a) ((fb_color_t){(r), (g), (b), (a)})

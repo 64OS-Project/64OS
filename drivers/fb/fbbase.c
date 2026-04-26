@@ -3,6 +3,8 @@
 #include <kernel/driver.h>
 #include <mbstruct.h>
 #include <kernel/paging.h>
+#include <libk/string.h>
+#include <mm/heap.h>
 
 framebuffer_t g_fb = {0};
 extern multiboot2_info_t mbinfo;
@@ -59,12 +61,17 @@ bool clip_coord(i32 *x, i32 *y) {
 }
 
 void put_pixel_raw(i32 x, i32 y, u32 pixel) {
-    // Protection from going beyond the boundaries
     if (x < 0 || x >= (i32)g_fb.width || y < 0 || y >= (i32)g_fb.height) {
         return;
     }
     
-    u8 *ptr = (u8*)g_fb.virt_addr + y * g_fb.pitch + x * g_fb.bytes_per_pixel;
+    // Рисуем в back buffer, если он есть
+    u8 *ptr;
+    if (g_fb.back_buffer) {
+        ptr = (u8*)g_fb.back_buffer + y * g_fb.pitch + x * g_fb.bytes_per_pixel;
+    } else {
+        ptr = (u8*)g_fb.virt_addr + y * g_fb.pitch + x * g_fb.bytes_per_pixel;
+    }
     
     if (g_fb.bytes_per_pixel == 4) {
         *(u32*)ptr = pixel;
@@ -94,6 +101,11 @@ bool framebuffer_init(u64 phys_addr, u32 width, u32 height,
     g_fb.pitch = pitch;
     g_fb.bpp = bpp;
     g_fb.bytes_per_pixel = (bpp + 7) / 8;
+
+    g_fb.back_buffer = malloc(g_fb.height * g_fb.pitch);
+    if (g_fb.back_buffer) {
+    	memset(g_fb.back_buffer, 0, g_fb.height * g_fb.pitch);
+    }
     
     // Detect format
     if (bpp == 32) g_fb.format = FB_FORMAT_RGB888;
@@ -135,7 +147,19 @@ fb_color_t fb_get_pixel(i32 x, i32 y) {
 }
 
 void fb_clear(fb_color_t color) {
-    fb_fill_rect(0, 0, g_fb.width, g_fb.height, color);
+    if (g_fb.back_buffer) {
+        // Очищаем back buffer
+        u32 pixel = color_to_pixel(color);
+        u32 total_pixels = g_fb.width * g_fb.height;
+        u32 *ptr = (u32*)g_fb.back_buffer;
+        
+        for (u32 i = 0; i < total_pixels; i++) {
+            ptr[i] = pixel;
+        }
+    } else {
+        // Старый код для прямого рисования
+        fb_fill_rect(0, 0, g_fb.width, g_fb.height, color);
+    }
 }
 
 fb_color_t fb_rgb(u8 r, u8 g, u8 b) {
@@ -160,4 +184,16 @@ bool fb_is_initialized(void) {
 
 u8 fb_get_bpp(void) {
     return g_fb.bpp;
+}
+
+void fb_swap_buffers(void) {
+    if (!g_fb.back_buffer) return;
+    
+    // Копируем бэк-буфер на экран
+    memcpy(g_fb.virt_addr, g_fb.back_buffer, g_fb.height * g_fb.pitch);
+}
+
+void fb_clear_back(void) {
+    if (!g_fb.back_buffer) return;
+    memset(g_fb.back_buffer, 0, g_fb.height * g_fb.pitch);
 }

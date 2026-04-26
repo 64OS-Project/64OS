@@ -40,5 +40,7 @@ extern void cmd_shutdown(void);
 extern void cmd_ps_simple(void);
 extern void cmd_ps_detailed(void);
 extern void cmd_kill(char* args);
+extern void cmd_termcolor(char *args);
+extern void cmd_errlist(char *args);
 
 #endif

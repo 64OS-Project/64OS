@@ -143,8 +143,6 @@ static int ask_user_yes_no(const char *question) {
 }
 
 cdrom_t* cdrom_find_and_init(void) {
-    terminal_printf("\n=== CD-ROM Detection ===\n");
-    
     blockdev_t *disks[32];
     int count = blockdev_get_list(disks, 32);
     
@@ -291,11 +289,9 @@ void cdrom_print_info(cdrom_t *cdrom) {
         return;
     }
     
-    terminal_printf("\n=== CD-ROM Info ===\n");
     terminal_printf("Device: %s\n", cdrom->device->name);
     terminal_printf("Volume label: %s\n", cdrom->volume_label[0] ? cdrom->volume_label : "(none)");
     terminal_printf("Total size: %lu MB\n", 
                    (unsigned long)(cdrom->total_sectors * 2048 / (1024 * 1024)));
     terminal_printf("ATAPI: %s\n", cdrom->is_atapi ? "Yes" : "No");
-    terminal_printf("==================\n");
 }

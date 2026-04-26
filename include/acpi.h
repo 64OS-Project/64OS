@@ -55,6 +55,9 @@ typedef struct {
     madt_t    *madt;
     hpet_t    *hpet;
     mcfg_t    *mcfg;
+    sdt_header_t *dsdt;
+    sdt_header_t *ssdts[16];
+    int ssdt_count;
     
     bool      use_xsdt;
     apic_info_t apic;
@@ -82,5 +85,10 @@ bool acpi_enable_local_apic(void);
 void acpi_reboot(void);
 void acpi_shutdown(void);
 void acpi_sleep(u8 sleep_type);
+
+typedef struct aml_context aml_context_t;
+
+aml_context_t *aml_get_context(void);
+bool aml_init_context(aml_context_t *ctx, acpi_t *acpi);
 
 #endif

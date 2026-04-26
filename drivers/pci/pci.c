@@ -25,7 +25,7 @@ static void pci_scan_bus(u8 bus);
 u32 pci_read_addr(u8 bus, u8 slot, u8 func, u8 offset);
 
 //==================== GLOBAL VARIABLES ====================
-static pci_device_t* pci_devices = NULL;
+pci_device_t* pci_devices = NULL;
 static int device_count = 0;
 
 //==================== BASIC OPERATIONS ====================

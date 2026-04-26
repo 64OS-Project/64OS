@@ -92,6 +92,9 @@ void fb_draw_char(char c, i32 x, i32 y, fb_color_t fg, fb_color_t bg) {
     u32 fg_pixel = color_to_pixel(fg);
     u32 bg_pixel = color_to_pixel(bg);
     
+    // Межбуквенный интервал (2 пикселя)
+    const int LETTER_SPACING = 2;
+    
     for (u8 row = 0; row < FONT_HEIGHT; row++) {
         u8 bits = (*glyph)[row][0];
         i32 py = y + row;
@@ -99,8 +102,7 @@ void fb_draw_char(char c, i32 x, i32 y, fb_color_t fg, fb_color_t bg) {
         for (u8 col = 0; col < FONT_WIDTH; col++) {
             i32 px = x + col;
             
-            if (!clip_coord(&px, &py)) continue;
-            
+            // Если это не последний столбец, идёт как обычно
             if (bits & (0x80 >> col)) {
                 put_pixel_raw(px, py, fg_pixel);
             } else {
@@ -115,6 +117,7 @@ void fb_draw_string(const char *str, i32 x, i32 y, fb_color_t fg, fb_color_t bg)
     
     i32 cur_x = x;
     i32 cur_y = y;
+    const int LETTER_SPACING = 2;  // 2 пикселя между буквами
     
     while (*str) {
         if (*str == '\n') {
@@ -122,7 +125,7 @@ void fb_draw_string(const char *str, i32 x, i32 y, fb_color_t fg, fb_color_t bg)
             cur_y += FONT_HEIGHT;
         } else {
             fb_draw_char(*str, cur_x, cur_y, fg, bg);
-            cur_x += FONT_WIDTH;
+            cur_x += FONT_WIDTH + LETTER_SPACING;  // ← ДОБАВЛЯЕМ ОТСТУП
         }
         str++;
     }
